@@ -16,7 +16,7 @@ internal class Program
 
         Console.WriteLine("Player initialization start");
         var sw = Stopwatch.StartNew();
-        var players = new List<Player>();
+        var players = new List<Player?>();
         foreach (var _ in Enumerable.Range(0, 100))
         {
             players.Add(new Player("Player1", Random.Shared.Next(0, 799), Random.Shared.Next(0, 599), PlayerType.Rock));
@@ -25,7 +25,7 @@ internal class Program
         }
         sw.Stop();
         Console.WriteLine($"Player initialization took {sw.ElapsedMilliseconds}ms");
-        
+
         while (window.IsOpen)
         {
             window.DispatchEvents();
@@ -35,6 +35,7 @@ internal class Program
 
             foreach (var player in players)
             {
+                if (player is null) continue;
                 player.Update(deltaTime, new SFML.System.Vector2u(800, 600));
                 player.Render(window);
             }
@@ -44,9 +45,12 @@ internal class Program
             var removablePlayers = new HashSet<int>();
             for (int i = 0; i < players.Count; i++)
             {
+                if (players[i] is null) continue;
                 for (int j = i + 1; j < players.Count; j++)
                 {
-                    if (players[i].CheckCollision(players[j]))
+                    if (players[j] is null) continue;
+
+                    if (players[i].GetType() != players[j].GetType() && players[i].CheckCollision(players[j]))
                     {
                         removablePlayers.Add(i); break;
                     }
@@ -64,7 +68,6 @@ internal class Program
             Console.WriteLine($"While loop took {sw.ElapsedMilliseconds}ms");
 
             window.Display();
-            // Thread.Sleep(800);
         }
 
     }

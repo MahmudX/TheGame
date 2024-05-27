@@ -12,7 +12,6 @@ class Player
     public Vector2f Velocity { get; set; }
     private const float Speed = 30.0f;
     public PlayerType PlayerType { get; set; }
-    public bool IsActive { get; set; } = true;
     public Player(string name, float x, float y, PlayerType playerType)
     {
         Name = name;
@@ -37,8 +36,6 @@ class Player
 
     public void Update(double deltaTime, Vector2u windowSize)
     {
-        if (!IsActive) return;
-
         X += Velocity.X * (float)deltaTime;
         Y += Velocity.Y * (float)deltaTime;
 
