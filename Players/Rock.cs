@@ -2,10 +2,26 @@ using SFML.Graphics;
 using SFML.System;
 using TheFight;
 
-
 namespace Players;
+
 public class Rock : GameObject
 {
+    public Rock(float x, float y)
+        : base(x, y)
+    {
+        shape = new CircleShape()
+        {
+            FillColor = Color.Red,
+            Position = new Vector2f(X, Y),
+            Radius = 5
+        };
+    }
+
+    public override bool CheckCollision(GameObject other)
+    {
+        throw new NotImplementedException();
+    }
+
     public override void Update(double deltaTime, Vector2u windowSize)
     {
         if (shape is CircleShape circleShape)
@@ -29,5 +45,13 @@ public class Rock : GameObject
 
             shape.Position = new Vector2f(X, Y);
         }
+    }
+
+    protected override bool CollidesWith(GameObject other)
+    {
+        float dx = X - other.X;
+        float dy = Y - other.Y;
+        float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+        return distance < (shape as CircleShape).Radius * 2;
     }
 }

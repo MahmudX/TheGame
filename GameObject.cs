@@ -1,11 +1,12 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+
 namespace TheFight;
 
-public abstract class GameObject
+public abstract class GameObject(float x, float y)
 {
-    public float X { get; set; }
-    public float Y { get; set; }
+    public float X { get; set; } = x;
+    public float Y { get; set; } = y;
     protected Vector2f Velocity { get; set; }
     protected Shape shape;
 
@@ -15,4 +16,7 @@ public abstract class GameObject
     {
         window.Draw(shape);
     }
+
+    protected abstract bool CollidesWith(GameObject other);
+    public abstract bool CheckCollision(GameObject other);
 }

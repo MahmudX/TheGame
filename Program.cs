@@ -1,31 +1,59 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using System.Numerics;
+using Microsoft.Extensions.Logging;
+using Players;
 using SFML.Graphics;
 using SFML.Window;
-using System.Diagnostics;
-using System.Numerics;
+
 namespace TheFight;
 
 internal class Program
 {
     static void Main(string[] args)
     {
-        VideoMode mode = new VideoMode(800, 600);
-        RenderWindow window = new RenderWindow(mode, "My Game");
-        window.Closed += (sender, e) => { ((RenderWindow)sender).Close(); };
+        const int rockCount = 300;
+        const int paperCount = 300;
+        const int scissorCount = 300;
+        const int windowHeight = 600;
+        const int windowWidth = 800;
 
+        var rocks = new List<Rock?>(
+            Enumerable
+                .Range(0, rockCount)
+                .Select(_ => new Rock(
+                    Random.Shared.Next(0, windowWidth),
+                    Random.Shared.Next(0, windowHeight)
+                ))
+        );
 
-        Console.WriteLine("Player initialization start");
-        var sw = Stopwatch.StartNew();
-        var players = new List<Player?>();
-        foreach (var _ in Enumerable.Range(0, 100))
+        var papers = new List<Rock?>(
+            Enumerable
+                .Range(0, rockCount)
+                .Select(_ => new Rock( // Temporary assume rock is paper
+                    Random.Shared.Next(0, windowWidth),
+                    Random.Shared.Next(0, windowHeight)
+                ))
+        );
+
+        var scissors = new List<Rock?>(
+            Enumerable
+                .Range(0, rockCount)
+                .Select(_ => new Rock( // Temporary assume rock is scissor
+                    Random.Shared.Next(0, windowWidth),
+                    Random.Shared.Next(0, windowHeight)
+                ))
+        );
+
+        //var papers = new List<Paper>(Enumerable.Range(0, paperCount).Select(_ => new Paper()));
+        //var scissors = new List<Scissor>(Enumerable.Range(0, scissorCount).Select(_ => new Scissor()));
+
+        VideoMode mode = new(windowWidth, windowHeight);
+        RenderWindow window = new(mode, "Rock Paper Scissors Championship");
+        window.Closed += (sender, e) =>
         {
-            players.Add(new Player("Player1", Random.Shared.Next(0, 799), Random.Shared.Next(0, 599), PlayerType.Rock));
-            players.Add(new Player("Player2", Random.Shared.Next(0, 799), Random.Shared.Next(0, 599), PlayerType.Paper));
-            players.Add(new Player("Player3", Random.Shared.Next(0, 799), Random.Shared.Next(0, 599), PlayerType.Scissor));
-        }
-        sw.Stop();
-        Console.WriteLine($"Player initialization took {sw.ElapsedMilliseconds}ms");
-
+            ((RenderWindow)sender).Close();
+        };
+        IEnumerable<GameObject?> allPlayers = rocks.Concat(papers).Concat(scissors);
         while (window.IsOpen)
         {
             window.DispatchEvents();
@@ -33,42 +61,62 @@ internal class Program
 
             double deltaTime = 0.016; // Assume 60 FPS for simplicity
 
-            foreach (var player in players)
+            foreach (var player in allPlayers)
             {
-                if (player is null) continue;
-                player.Update(deltaTime, new SFML.System.Vector2u(800, 600));
+                player.Update(deltaTime, window.Size);
                 player.Render(window);
             }
 
-            sw.Reset();
-            sw.Start();
-            var removablePlayers = new HashSet<int>();
-            for (int i = 0; i < players.Count; i++)
-            {
-                if (players[i] is null) continue;
-                for (int j = i + 1; j < players.Count; j++)
-                {
-                    if (players[j] is null) continue;
+            int validRocks = rocks.Count;
 
-                    if (players[i].GetType() != players[j].GetType() && players[i].CheckCollision(players[j]))
+            for (int i = 0; i < validRocks; i++)
+            {
+                var otherPlayers = papers.Concat(scissors);
+                foreach (var otherPlayer in otherPlayers)
+                {
+                    validRocks--;
+                    if (rocks[i].CheckCollision(otherPlayer))
                     {
-                        removablePlayers.Add(i); break;
+                        rocks[i] = rocks[validRocks];
+                        rocks[validRocks] = null;
+                        i--;
+                        break;
                     }
                 }
             }
 
-            if (removablePlayers.Count != 0)
-            {
-                foreach (var item in removablePlayers.OrderByDescending(i => i))
-                {
-                    players.RemoveAt(item);
-                }
-            }
-            sw.Stop();
-            Console.WriteLine($"While loop took {sw.ElapsedMilliseconds}ms");
+            rocks = rocks.GetRange(0, validRocks);
+
+            // var removablePlayers = new HashSet<int>();
+            // for (int i = 0; i < players.Count; i++)
+            // {
+            //     if (players[i] is null)
+            //         continue;
+            //     for (int j = i + 1; j < players.Count; j++)
+            //     {
+            //         if (players[j] is null)
+            //             continue;
+
+            //         if (
+            //             players[i].GetType() != players[j].GetType()
+            //             && players[i].CheckCollision(players[j])
+            //         )
+            //         {
+            //             removablePlayers.Add(i);
+            //             break;
+            //         }
+            //     }
+            // }
+
+            // if (removablePlayers.Count != 0)
+            // {
+            //     foreach (var item in removablePlayers.OrderByDescending(i => i))
+            //     {
+            //         players.RemoveAt(item);
+            //     }
+            // }
 
             window.Display();
         }
-
     }
 }
