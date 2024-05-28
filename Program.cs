@@ -18,35 +18,34 @@ internal class Program
         const int windowHeight = 600;
         const int windowWidth = 800;
 
-        var rocks = new List<Rock?>(
-            Enumerable
-                .Range(0, rockCount)
-                .Select(_ => new Rock(
-                    Random.Shared.Next(0, windowWidth),
-                    Random.Shared.Next(0, windowHeight)
-                ))
-        );
+        List<GameObject?> rocks =
+            new(
+                Enumerable
+                    .Range(0, rockCount)
+                    .Select(_ => new Rock(
+                        Random.Shared.Next(0, windowWidth),
+                        Random.Shared.Next(0, windowHeight)
+                    ))
+            );
 
-        var papers = new List<Rock?>(
-            Enumerable
-                .Range(0, rockCount)
-                .Select(_ => new Rock( // Temporary assume rock is paper
-                    Random.Shared.Next(0, windowWidth),
-                    Random.Shared.Next(0, windowHeight)
-                ))
-        );
-
-        var scissors = new List<Rock?>(
-            Enumerable
-                .Range(0, rockCount)
-                .Select(_ => new Rock( // Temporary assume rock is scissor
-                    Random.Shared.Next(0, windowWidth),
-                    Random.Shared.Next(0, windowHeight)
-                ))
-        );
-
-        //var papers = new List<Paper>(Enumerable.Range(0, paperCount).Select(_ => new Paper()));
-        //var scissors = new List<Scissor>(Enumerable.Range(0, scissorCount).Select(_ => new Scissor()));
+        List<GameObject?> papers =
+            new(
+                Enumerable
+                    .Range(0, paperCount)
+                    .Select(_ => new Paper(
+                        Random.Shared.Next(0, windowWidth),
+                        Random.Shared.Next(0, windowHeight)
+                    ))
+            );
+        List<GameObject?> scissors =
+            new(
+                Enumerable
+                    .Range(0, scissorCount)
+                    .Select(_ => new Scissors(
+                        Random.Shared.Next(0, windowWidth),
+                        Random.Shared.Next(0, windowHeight)
+                    ))
+            );
 
         VideoMode mode = new(windowWidth, windowHeight);
         RenderWindow window = new(mode, "Rock Paper Scissors Championship");
@@ -54,7 +53,6 @@ internal class Program
         {
             ((RenderWindow)sender).Close();
         };
-        IEnumerable<GameObject?> allPlayers = rocks.Concat(papers).Concat(scissors);
         while (window.IsOpen)
         {
             window.DispatchEvents();
@@ -62,44 +60,24 @@ internal class Program
 
             double deltaTime = 0.016; // Assume 60 FPS for simplicity
 
+            var allPlayers = rocks.Concat(papers).Concat(scissors);
             foreach (var player in allPlayers)
             {
                 player.Update(deltaTime, window.Size);
                 player.Render(window);
             }
 
-            int validRocks = rocks.Count;
-
-            for (int i = 0; i < validRocks; i++)
-            {
-                var otherPlayers = papers.Concat(scissors);
-                foreach (var otherPlayer in otherPlayers)
-                {
-                    validRocks--;
-                    if (rocks[i].CheckCollision(otherPlayer))
-                    {
-                        rocks[i] = rocks[validRocks];
-                        rocks[validRocks] = null;
-                        i--;
-                        break;
-                    }
-                }
-            }
-
-            rocks = rocks.GetRange(0, validRocks);
-
-            // Same for papers and scissors
-
-
-
+            CheckCollisionAndRemovePlayer(ref rocks, papers, scissors);
+            CheckCollisionAndRemovePlayer(ref papers, rocks, scissors);
+            CheckCollisionAndRemovePlayer(ref scissors, rocks, papers);
             window.Display();
         }
     }
 
-    void CheckCollisionAndRemovePlayer(
-        List<Rock?> target,
-        List<Rock?> opponent1,
-        List<Rock?> opponent2
+    static void CheckCollisionAndRemovePlayer(
+        ref List<GameObject?> target,
+        List<GameObject?> opponent1,
+        List<GameObject?> opponent2
     )
     {
         int validItems = target.Count;
@@ -109,26 +87,21 @@ internal class Program
             var otherPlayers = opponent1.Concat(opponent2);
             foreach (var otherPlayer in otherPlayers)
             {
-                validItems--;
-                var collisionState = target[i].CheckCollision(otherPlayer);
-                if (collisionState != CollisionType.None)
+                if (target[i].CheckCollision(otherPlayer))
                 {
-                    if (collisionState.Equals(CollisionType.Self))
-                    {
-                        target[i] = rocks[validItems];
-                        target[validItems] = null;
-                        i--;
-                    }
-                    else if (collisionState.Equals(CollisionType.Other))
-                    {
-                        // Do something
-                    }
-
+                    validItems--;
+                    target[i] = target[validItems];
+                    target[validItems] = null;
+                    i--;
                     break;
                 }
             }
         }
 
-        target = rocks.GetRange(0, validItems);
+        if (validItems < target.Count)
+        {
+            System.Console.WriteLine($"Removing {target.Count - validItems} players");
+            target = target.GetRange(0, validItems);
+        }
     }
 }

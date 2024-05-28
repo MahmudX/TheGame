@@ -17,11 +17,6 @@ public class Rock : GameObject
         };
     }
 
-    public override bool CheckCollision(GameObject other)
-    {
-        throw new NotImplementedException();
-    }
-
     public override void Update(double deltaTime, Vector2u windowSize)
     {
         if (shape is CircleShape circleShape)
@@ -52,6 +47,16 @@ public class Rock : GameObject
         float dx = X - other.X;
         float dy = Y - other.Y;
         float distance = (float)Math.Sqrt(dx * dx + dy * dy);
-        return distance < (shape as CircleShape).Radius * 2;
+
+        if (shape is CircleShape circleShape)
+        {
+            return distance < circleShape.Radius * 2;
+        }
+        return false;
+    }
+
+    public override bool CheckCollision(GameObject other)
+    {
+        return other is Paper && CollidesWith(other);
     }
 }
