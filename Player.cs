@@ -1,5 +1,6 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+
 namespace TheFight;
 
 class Player
@@ -12,6 +13,7 @@ class Player
     public Vector2f Velocity { get; set; }
     private const float Speed = 30.0f;
     public PlayerType PlayerType { get; set; }
+
     public Player(string name, float x, float y, PlayerType playerType)
     {
         Name = name;
@@ -71,7 +73,6 @@ class Player
         return distance < shape.Radius * 2;
     }
 
-
     public bool CheckCollision(Player other)
     {
         if (CollidesWith(other))
@@ -95,8 +96,9 @@ class Player
     }
 }
 
-
 enum PlayerType
 {
-    Rock, Paper, Scissor
+    Rock,
+    Paper,
+    Scissor
 }

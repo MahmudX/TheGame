@@ -18,5 +18,5 @@ public abstract class GameObject(float x, float y)
     }
 
     protected abstract bool CollidesWith(GameObject other);
-    public abstract bool CheckCollision(GameObject other);
+    public abstract CollisionType CheckCollision(GameObject other);
 }

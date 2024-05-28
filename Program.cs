@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Players;
 using SFML.Graphics;
 using SFML.Window;
+using TheGame;
 
 namespace TheFight;
 
@@ -87,36 +88,47 @@ internal class Program
 
             rocks = rocks.GetRange(0, validRocks);
 
-            // var removablePlayers = new HashSet<int>();
-            // for (int i = 0; i < players.Count; i++)
-            // {
-            //     if (players[i] is null)
-            //         continue;
-            //     for (int j = i + 1; j < players.Count; j++)
-            //     {
-            //         if (players[j] is null)
-            //             continue;
+            // Same for papers and scissors
 
-            //         if (
-            //             players[i].GetType() != players[j].GetType()
-            //             && players[i].CheckCollision(players[j])
-            //         )
-            //         {
-            //             removablePlayers.Add(i);
-            //             break;
-            //         }
-            //     }
-            // }
 
-            // if (removablePlayers.Count != 0)
-            // {
-            //     foreach (var item in removablePlayers.OrderByDescending(i => i))
-            //     {
-            //         players.RemoveAt(item);
-            //     }
-            // }
 
             window.Display();
         }
+    }
+
+    void CheckCollisionAndRemovePlayer(
+        List<Rock?> target,
+        List<Rock?> opponent1,
+        List<Rock?> opponent2
+    )
+    {
+        int validItems = target.Count;
+
+        for (int i = 0; i < validItems; i++)
+        {
+            var otherPlayers = opponent1.Concat(opponent2);
+            foreach (var otherPlayer in otherPlayers)
+            {
+                validItems--;
+                var collisionState = target[i].CheckCollision(otherPlayer);
+                if (collisionState != CollisionType.None)
+                {
+                    if (collisionState.Equals(CollisionType.Self))
+                    {
+                        target[i] = rocks[validItems];
+                        target[validItems] = null;
+                        i--;
+                    }
+                    else if (collisionState.Equals(CollisionType.Other))
+                    {
+                        // Do something
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        target = rocks.GetRange(0, validItems);
     }
 }
